@@ -2,67 +2,60 @@
 
 namespace System\DB;
 
+use App\Config;
 use mysql_xdevapi\Exception;
+use Psr\Log\AbstractLogger;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
+use System\Contracts\ActiveRecordInterface;
+use System\Contracts\Queryable;
+use System\Models\Model;
+use System\Traits\Singletone;
 
-/**
- * Class Db
- * @package App
- * Класс для работы с БД
- */
+
 class Db
-    implements LoggerAwareInterface{
+    implements LoggerAwareInterface, Queryable {
 
-    use \System\Singletone;
+    private $logger;
+    private $config;
 
-    protected $logger;
+    use Singletone;
 
-    protected function __construct()
+    protected function __construct(Config $config, AbstractLogger $logger)
     {
 
-        $config = Config::getInstace();
+        $this->config = $config;
 
-        /// Установка логера
-        $this->setLogger(new Logger( ($config->data['log']['DBLog'])));
+        $this->setLogger($logger);
 
         try {
-            $this->dbh = new \PDO('mysql:host=' . $config->data['db']['host'] . ';' . 'dbname=' . $config->data['db']['dbname'], $config->data['db']['user'], $config->data['db']['password']);
-        } catch (\PDOException $ex) {
+            $this->dbh = new \PDO('mysql:host=' . $this->config->data['db']['host'] . ';'
+                . 'dbname=' . $this->config->data['db']['dbname'],
+                $this->config->data['db']['user'], $this->config->data['db']['password']);
 
-            $context = ['DB'=>$config->data['db']['dbname'],
-                        'UserDB'=>$config->data['db']['user']
-            ];
-            $this->logger->log('Error', '{date}, Не удалось установить соединение с БД. Имя базы: {DB}, Имя пользователя: {UserDB}}, ', $context);
+        } catch (\PDOException $ex) {
+            $this->logger->log('Error', '{date}, Не удалось установить соединение с БД. Имя базы: {DB}, Имя пользователя: {user}, ', $this->getContext());
             throw new \Exception\DB('Ошибка подключения к БД');
 
         }
 
     }
 
-    /**
-     * @param $sql Заспрос
-     * @param array $params Параметры для подстановки в запрос
-     * @return array    Результат запроса и ID вставленной записи
-     * Выполенение запроса без получения данных
-     */
+    static public function getInstace(Config $config = null, AbstractLogger $logger = null){
+        if (null === static::$instance) {
+            static::$instance = new static($config, $logger);
+        }
+        return static::$instance;
+    }
+
     public function execute($sql, $params = [])
     {
         $sth = $this->dbh->prepare($sql);
         $res = $sth->execute($params);
 
-        if (false == $res){
-            $date = date("d-m-Y H:i:s");
-            $config = Config::getInstace();
-
-            $context = [
-                        'DB'=>$config->data['db']['dbname'],
-                        'date'=>$date,
-                        'SQL'=>$sql,
-                        'POST'=>implode('; ', $_POST)
-                       ];
-
-            $this->logger->log('Error', '{date}, Не удалось выполнить запрос БД. Имя базы: {DB}, Текст запроса: {SQL}, POST: {POST}', $context);
+        if (!$res){
+            $this->logger->log('Error', '{date}, Не удалось выполнить запрос БД. Имя базы: {DB}, Текст запроса: {SQL}, POST: {POST}',
+            $this->getContext($sql));
         }
 
         return ['result' => $res, 'id' => $this->dbh->lastInsertId()];
@@ -74,31 +67,33 @@ class Db
      * @param array $params Параметры для подстановки в запрос
      * @return array Маасив с результатом выполненного запроса
      */
-    public function query($sql, $class, $params = [])
+    public function query(string $sql, string $class = null, array $params = [])
     {
 
         $sth = $this->dbh->prepare($sql);
         $res = $sth->execute($params);
 
-        if (!false == $res) {
+        if ($res || (isset($class))) {
             return $sth->fetchAll(\PDO::FETCH_CLASS, $class);
         }
 
-        $config = Config::getInstace();
+        if ($res) {
+            return $res;
+        }
 
-        $context = [
-            'DB'=>$config->data['db']['dbname'],
-            'SQL'=>$sql
-        ];
-
-        $this->logger->log('warning', '{date}, Не удалось выполнить запрос БД. Имя базы: {DB}, Текст запроса: {SQL}}, ', $context);
-        return [];
+        $this->logger->log('warning', '{date}, Не удалось выполнить запрос БД. Имя базы: {DB}, Текст запроса: {SQL}}, ', $this->getContext());
+        return $res;
     }
 
-    /**
-     * @param LoggerInterface $logger
-     * Установка логгера
-     */
+    private function getContext(string $sql = null){
+        return [
+            'DB'=>$this->config->data['db']['dbname'],
+            'user' => $this->config->data['db']['user'],
+            'SQL'=>$sql,
+            'POST'=>implode('; ', $_POST)
+        ];
+    }
+
     public function setLogger(LoggerInterface $logger)
     {
         $this->logger = $logger;

@@ -35,30 +35,7 @@ implements \Countable
         return (int)$this::count($this->data);
     }
 
-    /**
-     * @param $file
-     * @return string
-     * Заменяет ссылки
-     */
-    public function replaceLink($file){
 
-        preg_match_all("/\.\.\//", $file, $results, PREG_PATTERN_ORDER);
-
-        $links = array_unique($results[0]);
-
-        $newLinks = ['App/'];
-
-        $file = str_replace($links, $newLinks, $file);
-
-        return $file;
-
-    }
-
-    /**
-     * @param $temlate
-     * @return string
-     * Готовит шаблон к отображеню
-     */
     public function render($temlate)
     {
 
@@ -82,19 +59,12 @@ implements \Countable
 
     }
 
-    /**
-     * @param $temlate
-     * подключает шаблон, выводит на экран
-     */
+
     public function display($temlate)
     {
         echo $this->render($temlate);
     }
 
-    /**
-     * @param array $obj
-     * Отображает JSON
-     */
     public function JSON($obj){
         echo json_encode($obj);
     }

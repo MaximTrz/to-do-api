@@ -1,7 +1,7 @@
 <?php
 
 
-namespace App;
+namespace System;
 
 
 use Psr\Log\AbstractLogger;

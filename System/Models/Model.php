@@ -1,37 +1,50 @@
 <?php
 
 
-namespace App\Models;
+namespace System\Models;
 
 
-use App\Db;
-use App\Models\Interfaces\CRUD;
+use System\Contracts\ActiveRecordInterface;
+use System\Contracts\Queryable;
+use System\DB\QueryBuilder;
 
-abstract class Model implements CRUD
+abstract class Model implements ActiveRecordInterface
 {
     const TABLE = '';
 
     public $id;
 
+    protected static $db;
+    protected static $queryBuilder;
+
     static public function getTableName(){
         return static::TABLE;
     }
 
+    public static function setDb(Queryable $db)
+    {
+        static::$db = $db;
+    }
+
+    public static function setQueryBuilder(QueryBuilder $queryBuilder)
+    {
+        static::$queryBuilder = $queryBuilder;
+    }
+
     static public function findAll()
     {
-        $db = Db::getInstace();
-        $sql = 'SELECT * FROM ' . static::getTableName() . ' WHERE ACTIVE_TO>CURRENT_DATE';
-        return $db->query($sql, static::class);
+        $sql = static::$queryBuilder->select("*")->from(static::getTableName())->where('ACTIVE_TO', '>',  date('Y-m-d H:i:s'))->getQuery();
+        return static::$db->query($sql, static::class);
     }
 
     static public function findById($id)
     {
 
-        $db = Db::getInstace();
+        $sql = static::$queryBuilder->select("*")->from(static::getTableName())->where( 'ACTIVE_TO', '>',  date('Y-m-d H:i:s'))
+            ->where("id","=",$id)
+            ->getQuery();
 
-        $sql = 'SELECT * FROM ' . static::getTableName(). ' WHERE ACTIVE_TO>CURRENT_DATE';
-
-        return $db->query($sql, static::class, ['id' => $id])[0];
+        return static::$db->query($sql, static::class)[0];
     }
 
     public function isNew()

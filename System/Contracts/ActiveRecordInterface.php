@@ -7,7 +7,7 @@ namespace System\Contracts;
 interface ActiveRecordInterface
 {
     static public function findAll();
-    static public function findById($id);
+    static public function findById(int $id);
     public function isNew();
     public function insert();
     public function update();

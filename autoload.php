@@ -8,5 +8,5 @@ spl_autoload_register(function($className)
     }
 });
 
-$path = file_exists(__DIR__.'/../vendor/autoload.php');
-include str_replace('\\', '/', __DIR__.'/../vendor/autoload.php');
+$path = file_exists(__DIR__.'/vendor/autoload.php');
+include str_replace('\\', '/', __DIR__.'/vendor/autoload.php');

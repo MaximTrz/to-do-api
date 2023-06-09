@@ -1,6 +1,8 @@
 <?php
 
 namespace App;
+use System\Traits\Singletone;
+
 /**
  * Class Config
  * @package App
@@ -8,7 +10,7 @@ namespace App;
  */
 class Config
 {
-    use \App\Singletone;
+    use Singletone;
 
     /**
      * @var \string[][]
@@ -28,10 +30,6 @@ class Config
         'templates' => [
             'path' => 'App/templates'
         ],
-        'imagesCatalogName' => [
-            'history' => 'history',
-            'today' => 'today'
-        ]
     ];
 
 }

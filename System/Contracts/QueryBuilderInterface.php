@@ -6,11 +6,11 @@ namespace System\Contracts;
 
 interface QueryBuilderInterface
 {
-    public function select($fields);
+    public function select(array|string ...$fields);
 
-    public function from($table);
+    public function from(string $table);
 
-    public function where($field, $operator, $value);
+    public function where(string $field, string $operator, string|int $value);
 
     public function getQuery();
 }
