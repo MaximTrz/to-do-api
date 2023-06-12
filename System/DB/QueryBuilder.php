@@ -8,14 +8,15 @@ use System\Traits\Singletone;
 
 class QueryBuilder implements QueryBuilderInterface
 {
-    use Singletone;
-
-    protected array $select = [];
+    public array $select = [];
     protected string $from;
+    protected $insert = [];
+    protected ?string $delete = null;
     protected array $where = [];
     protected array $set = [];
     protected string $table;
     protected ?string $limit = null;
+    protected ?string $query = null;
 
     public function select(array|string ...$fields): self {
         $this->select = is_array($fields[0]) ? $fields[0] : $fields;
@@ -51,7 +52,7 @@ class QueryBuilder implements QueryBuilderInterface
     }
 
     public function delete(string $table): self {
-        $this->table = $table;
+        $this->delete = $table;
         return $this;
     }
 
@@ -61,22 +62,38 @@ class QueryBuilder implements QueryBuilderInterface
     }
 
     public function getQuery(): string {
+
         if(!empty($this->select)) {
             $select = implode(', ', $this->select);
             $where = count($this->where) ? 'WHERE '.implode(' AND ', $this->where) : '';
+            $this->select = [];
+            $this->where = [];
             return "SELECT $select FROM {$this->from} $where $this->limit";
-        } else if(!empty($this->set)) {
+        }
+        if(!empty($this->set)) {
+
             $set = implode(', ', $this->set);
             $where = count($this->where) ? 'WHERE '.implode(' AND ', $this->where) : '';
+            $this->where = [];
+            $this->set = [];
             return "UPDATE {$this->table} SET $set $where";
-        } else if(!empty($this->table) && empty($this->set)) {
+        }
+        if(!empty($this->delete)) {
             $where = count($this->where) ? 'WHERE '.implode(' AND ', $this->where) : '';
-            return "DELETE FROM {$this->table} $where";
-        } else if(!empty($this->table) && !empty($this->set)) {
-            $set = implode(', ', $this->set);
-            $where = count($this->where) ? 'WHERE '.implode(' AND ', $this->where) : '';
-            return "UPDATE {$this->table} SET $set $where";
-        } else if(!empty($this->table)) {
+            $this->where = [];
+            $this->delete = null;
+            return "DELETE FROM {$this->delete} $where";
+        }
+
+
+        if(!empty($this->insert)) {
+            $columns = implode(', ', array_keys($this->insert));
+            $values = implode(', ', array_map(function($value) { return "'$value'"; }, array_values($this->insert)));
+            $this->insert = null;
+            return "INSERT INTO {$this->table} ($columns) VALUES ($values)";
+        }
+
+        if(!empty($this->query)) {
             return $this->query;
         } else {
             throw new Exception("No query found");

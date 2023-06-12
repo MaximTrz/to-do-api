@@ -6,11 +6,7 @@ use App\Controllers\Interfaces\HasActions;
 use App\Exceptions\PageNotFound;
 use App\Views\View;
 
-/**
- * Class Controller
- * @package App\Controllers
- * Абстрактный класс контроллера
- */
+
 abstract class Controller implements HasActions
 {
 

@@ -14,8 +14,8 @@ abstract class Model implements ActiveRecordInterface
 
     public $id;
 
-    protected static $db;
-    protected static $queryBuilder;
+    protected static $db = null;
+    public static $queryBuilder = null;
 
     static public function getTableName(){
         return static::TABLE;
@@ -31,15 +31,26 @@ abstract class Model implements ActiveRecordInterface
         static::$queryBuilder = $queryBuilder;
     }
 
+    private static function checkDb()
+    {
+        return isset(static::$db) || isset(static::$queryBuilder);
+    }
+
+
     static public function findAll()
     {
+        if (!static::checkDb()){
+            return false;
+        }
         $sql = static::$queryBuilder->select("*")->from(static::getTableName())->where('ACTIVE_TO', '>',  date('Y-m-d H:i:s'))->getQuery();
         return static::$db->query($sql, static::class);
     }
 
     static public function findById($id)
     {
-
+        if (!static::checkDb()){
+            return false;
+        }
         $sql = static::$queryBuilder->select("*")->from(static::getTableName())->where( 'ACTIVE_TO', '>',  date('Y-m-d H:i:s'))
             ->where("id","=",$id)
             ->getQuery();
@@ -54,71 +65,36 @@ abstract class Model implements ActiveRecordInterface
 
     public function insert()
     {
-        $columns = [];
-        $values = [];
 
-        foreach ($this as $key => $value) {
-
-            if ('id' == $key) {
-                continue;
-            }
-
-            if (empty($value)) {
-                continue;
-            }
-
-            $columns[] = $key;
-            $values[':' . $key] = $value;
-
+        if (!static::checkDb())
+        {
+            return false;
         }
 
-        $sql = 'INSERT INTO ' . static::getTableName() . ' (' . implode(' ,', $columns) . ')' .
-            ' VALUES (' . implode(', ', array_keys($values)) . ')';
+        $fields = get_object_vars($this);
 
-        $db = Db::getInstace();
-        $res = $db->execute($sql, $values);
+        unset($fields["id"]);
 
-        if (true == $res['result']) {
-            $this->id = $res['id'];
-        }
-        return $res;
+        $sql = static::$queryBuilder->insert(static::getTableName(), $fields)->getQuery();
+
+        return static::$db->execute($sql);
+
     }
 
     public function update()
     {
 
-        $values = [];
-        $set = '';
+        static::$queryBuilder->update(static::getTableName());
 
-        $i = 0;
-
-        foreach ($this as $key => $value) {
-            if ('id' == $key) {
-                continue;
-            }
-
-            if ($key == 'links'){
-                $i++;
-                continue;
-            }
-
-            $i++;
-            $set .= ' ' . $key . '=' . ':' . $key;
-
-            if (!($i == count(get_object_vars($this)) - 1)) {
-                $set .= ', ';
-            }
-
-            $values[':' . $key] = $value;
+        foreach (get_object_vars($this) as $key => $value) {
+            static::$queryBuilder->set($key, $value);
         }
 
-        $values[':id'] = $this->id;
+        static::$queryBuilder->where('id', '=', $this->id);
 
-        $sql = 'UPDATE ' . static::getTableName() . ' SET ' . $set . ' WHERE id = :id';
+        $sql = static::$queryBuilder->getQuery();
 
-        $db = Db::getInstace();
-
-        return $db->execute($sql, $values);;
+        return static::$db->execute($sql);
 
     }
 
