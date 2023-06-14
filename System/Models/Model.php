@@ -55,7 +55,14 @@ abstract class Model implements ActiveRecordInterface
             ->where("id","=",$id)
             ->getQuery();
 
-        return static::$db->query($sql, static::class)[0];
+        $result = static::$db->query($sql, static::class);
+
+        if (count($result)>0){
+            return static::$db->query($sql, static::class)[0];
+        }
+
+        return false;
+
     }
 
     public function isNew()

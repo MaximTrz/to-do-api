@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Views;
+namespace System\Views;
 
 use App\Config;
 
@@ -66,7 +66,7 @@ implements \Countable
     }
 
     public function JSON($obj){
-        echo json_encode($obj);
+        return json_encode($obj);
     }
 
 }

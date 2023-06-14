@@ -1,7 +1,7 @@
 <?php
 
 
-namespace App\Controllers\Interfaces;
+namespace System\Contracts;
 
 
 interface HasActions

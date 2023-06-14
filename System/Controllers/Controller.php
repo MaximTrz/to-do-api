@@ -1,18 +1,26 @@
 <?php
 
 
-namespace App\Controllers;
-use App\Controllers\Interfaces\HasActions;
-use App\Exceptions\PageNotFound;
-use App\Views\View;
+namespace System\Controllers;
+
+
+
+
+use System\Contracts\HasActions;
+use System\Models\Model;
+use System\Views\View;
 
 
 abstract class Controller implements HasActions
 {
 
-    public function __construct()
+    protected $view;
+    protected $model;
+
+    public function __construct(Model $model, View $view)
     {
-        $this->view = new View();
+        $this->view = $view;
+        $this->model = $model;
     }
 
     /**

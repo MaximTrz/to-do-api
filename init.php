@@ -10,27 +10,13 @@ $db = System\DB\Db::getInstace($config, $logger);
 
 $builder = new \System\DB\QueryBuilder();
 
-\App\Models\Element::setDb($db);
-\App\Models\Element::setQueryBuilder($builder);
+//\App\Models\Element::setDb($db);
+//\App\Models\Element::setQueryBuilder($builder);
 
-//$book = new \App\Models\Element();
+
+
+//$controller = new App\Controllers\Api\Task(new \App\Models\Element(), new \System\Views\View() );
 //
-//$book->name = "1111555";
-//
-//$sql = $book->insert();
-
-//$element = \App\Models\Element::findById(1);
-
-//$element->name = "Te11155";
-//
-////$element->update();
-//
-//var_dump($element->save());
-
-$element = new \App\Models\Element();
-
-$element->name = "Жопа";
-
-$element->save();
+//$controller->action("get", 1);
 
 $router = new \Bramus\Router\Router();
