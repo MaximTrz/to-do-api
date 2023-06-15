@@ -4,8 +4,6 @@
 namespace System\Controllers;
 
 
-
-
 use System\Contracts\HasActions;
 use System\Models\Model;
 use System\Views\View;
@@ -29,7 +27,7 @@ abstract class Controller implements HasActions
      * @throws PageNotFound если подходящего Action не нащлось бросаем ошибку "страница не найдена"
      * Запускает переданный Action
      */
-    public function action($action, $params = [])
+    public function action(string $action, Array|int $params = null)
     {
         $actionName = 'action' . $action;
 

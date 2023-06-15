@@ -10,13 +10,12 @@ $db = System\DB\Db::getInstace($config, $logger);
 
 $builder = new \System\DB\QueryBuilder();
 
-//\App\Models\Element::setDb($db);
-//\App\Models\Element::setQueryBuilder($builder);
+\App\Models\Task::setDb($db);
+\App\Models\Task::setQueryBuilder($builder);
 
 
+$container = new \System\Container();
 
-//$controller = new App\Controllers\Api\Task(new \App\Models\Element(), new \System\Views\View() );
-//
-//$controller->action("get", 1);
+$model = \App\Models\Task::findById(1);
 
 $router = new \Bramus\Router\Router();

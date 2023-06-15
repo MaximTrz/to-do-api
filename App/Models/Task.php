@@ -4,7 +4,9 @@
 namespace App\Models;
 
 
-class Task
+use System\Models\Model;
+
+class Task extends Model
 {
     const TABLE = 'elements';
     public $name;

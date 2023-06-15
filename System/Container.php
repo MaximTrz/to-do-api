@@ -3,19 +3,20 @@
 
 namespace System;
 
+use App\Controllers\Api\Task as TaskController;
+use App\Models\Task as TaskModel;
+use System\Views\View;
 
-class Container implements Psr\Container\ContainerInterface
+class Container
 {
     private array $objects = [];
 
     public function __construct()
     {
-        // Ключи в этом массиве - строковые ID объектов
-        // Значения - функции, строящие нужный объект
         $this->objects = [
             'db' => fn() => DB\Db::getInstace(),
-            'repository.user' => fn() => new UserRepository(),
-            'controller.user' => fn() => new UserController(),
+            'model.task' => fn() => new TaskModel(),
+            'controller.task' => fn() => new TaskController(new TaskModel(), new View()),
         ];
     }
 
@@ -26,10 +27,9 @@ class Container implements Psr\Container\ContainerInterface
 
     public function get(string $id): mixed
     {
+
         return
-            isset($this->objects[$id])
-                ? $this->objects[$id]()
-                : $this->prepareObject($id);
+            isset($this->objects[$id]) ? $this->objects[$id]() : $this->prepareObject($id);
     }
 
     private function prepareObject(string $class): object
@@ -39,6 +39,7 @@ class Container implements Psr\Container\ContainerInterface
         // Получаем рефлектор конструктора класса, проверяем - есть ли конструктор
         // Если конструктора нет - сразу возвращаем экземпляр класса
         $constructReflector = $classReflector->getConstructor();
+
         if (empty($constructReflector)) {
             return new $class;
         }

@@ -4,6 +4,7 @@
 namespace System\Models;
 
 
+use mysql_xdevapi\Exception;
 use System\Contracts\ActiveRecordInterface;
 use System\Contracts\Queryable;
 use System\DB\QueryBuilder;
@@ -33,7 +34,9 @@ abstract class Model implements ActiveRecordInterface
 
     private static function checkDb()
     {
-        return isset(static::$db) || isset(static::$queryBuilder);
+        if ( !(isset(static::$db) || isset(static::$queryBuilder)) ) {
+            throw new Exception("Не установлены необходимые зависимости");
+        }
     }
 
 
@@ -48,9 +51,8 @@ abstract class Model implements ActiveRecordInterface
 
     static public function findById($id)
     {
-        if (!static::checkDb()){
-            return false;
-        }
+        static::checkDb();
+
         $sql = static::$queryBuilder->select("*")->from(static::getTableName())->where( 'ACTIVE_TO', '>',  date('Y-m-d H:i:s'))
             ->where("id","=",$id)
             ->getQuery();
@@ -73,10 +75,7 @@ abstract class Model implements ActiveRecordInterface
     public function insert()
     {
 
-        if (!static::checkDb())
-        {
-            return false;
-        }
+        static::checkDb();
 
         $fields = get_object_vars($this);
 
@@ -90,6 +89,8 @@ abstract class Model implements ActiveRecordInterface
 
     public function update()
     {
+
+        static::checkDb();
 
         static::$queryBuilder->update(static::getTableName());
 
@@ -125,12 +126,15 @@ abstract class Model implements ActiveRecordInterface
     public function delete()
     {
 
-        $sql = 'UPDATE ' . static::getTableName() . ' SET ACTIVE_TO = CURRENT_DATE' .  ' WHERE id = :id';
-        $params = [':id' => $this->id];
-        $db = Db::getInstace();
-        $res = $db->execute($sql, $params);
+        static::checkDb();
 
-        return $res;
+        static::$queryBuilder->update(static::getTableName());
+        static::$queryBuilder->set("active_to", date('Y-m-d H:i:s'));
+        static::$queryBuilder->where('id', '=', $this->id);
+
+        $sql = static::$queryBuilder->getQuery();
+
+        return static::$db->execute($sql);
 
     }
 

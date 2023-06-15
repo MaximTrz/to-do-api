@@ -71,7 +71,6 @@ class QueryBuilder implements QueryBuilderInterface
             return "SELECT $select FROM {$this->from} $where $this->limit";
         }
         if(!empty($this->set)) {
-
             $set = implode(', ', $this->set);
             $where = count($this->where) ? 'WHERE '.implode(' AND ', $this->where) : '';
             $this->where = [];
@@ -79,10 +78,11 @@ class QueryBuilder implements QueryBuilderInterface
             return "UPDATE {$this->table} SET $set $where";
         }
         if(!empty($this->delete)) {
+            $table = $this->delete;
             $where = count($this->where) ? 'WHERE '.implode(' AND ', $this->where) : '';
             $this->where = [];
             $this->delete = null;
-            return "DELETE FROM {$this->delete} $where";
+            return "DELETE FROM {$table} $where";
         }
 
 

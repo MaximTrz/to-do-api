@@ -30,7 +30,7 @@ implements \Countable
     }
 
 
-    public function count()
+    public function count(): int
     {
         return (int)$this::count($this->data);
     }
