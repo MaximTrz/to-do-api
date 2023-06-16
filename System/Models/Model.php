@@ -6,6 +6,7 @@ namespace System\Models;
 
 use mysql_xdevapi\Exception;
 use System\Contracts\ActiveRecordInterface;
+use System\Contracts\HasQueryResult;
 use System\Contracts\Queryable;
 use System\DB\QueryBuilder;
 
@@ -18,21 +19,22 @@ abstract class Model implements ActiveRecordInterface
     protected static $db = null;
     public static $queryBuilder = null;
 
-    static public function getTableName(){
+    static public function getTableName() : string
+    {
         return static::TABLE;
     }
 
-    public static function setDb(Queryable $db)
+    public static function setDb(Queryable $db) : void
     {
         static::$db = $db;
     }
 
-    public static function setQueryBuilder(QueryBuilder $queryBuilder)
+    public static function setQueryBuilder(QueryBuilder $queryBuilder) : void
     {
         static::$queryBuilder = $queryBuilder;
     }
 
-    private static function checkDb()
+    private static function checkDb() : void
     {
         if ( !(isset(static::$db) || isset(static::$queryBuilder)) ) {
             throw new Exception("Не установлены необходимые зависимости");
@@ -40,16 +42,14 @@ abstract class Model implements ActiveRecordInterface
     }
 
 
-    static public function findAll()
+    static public function findAll() : mixed
     {
-        if (!static::checkDb()){
-            return false;
-        }
+        static::checkDb();
         $sql = static::$queryBuilder->select("*")->from(static::getTableName())->where('ACTIVE_TO', '>',  date('Y-m-d H:i:s'))->getQuery();
         return static::$db->query($sql, static::class);
     }
 
-    static public function findById($id)
+    static public function findById($id) : mixed
     {
         static::checkDb();
 
@@ -59,20 +59,16 @@ abstract class Model implements ActiveRecordInterface
 
         $result = static::$db->query($sql, static::class);
 
-        if (count($result)>0){
-            return static::$db->query($sql, static::class)[0];
-        }
-
-        return false;
+        return !empty($result)  ? $result[0] : null;
 
     }
 
-    public function isNew()
+    public function isNew() : bool
     {
         return empty($this->id);
     }
 
-    public function insert()
+    public function insert() : HasQueryResult
     {
 
         static::checkDb();
@@ -106,7 +102,7 @@ abstract class Model implements ActiveRecordInterface
 
     }
 
-    public function save()
+    public function save() : HasQueryResult
     {
 
         if ($this->isNew() == true) {

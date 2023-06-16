@@ -5,6 +5,7 @@ namespace System\Controllers;
 
 
 use System\Contracts\API;
+use System\Contracts\HasQueryResult;
 
 class ControllerAPI extends Controller implements API
 {
@@ -41,7 +42,7 @@ class ControllerAPI extends Controller implements API
 
     public function actionPost()
     {
-        $this->model = $this->fillObj($this->model, htmlspecialchars($_POST));
+        $this->model = $this->fillObj($this->model, $_POST);
         $result = $this->model->save();
         $this->sentResult($result);
     }
@@ -51,21 +52,26 @@ class ControllerAPI extends Controller implements API
 
         foreach ($arr as $key => $value){
             if (property_exists($obj, $key)==true){
-                $obj->$key = $arr[$key];
+                $obj->$key = htmlspecialchars($arr[$key]);
             }
         }
 
         return $obj;
     }
 
-    private function sentResult($result)
+    private function sentResult(HasQueryResult $result)
     {
-        if  (true == $result['result']){
+        if  ($result->getQueryResult()){
             http_response_code(200);
-            echo $this->view->JSON($result);
+            echo $this->view->JSON($result->getId());
         } else {
             http_response_code(500);
         }
+    }
+
+    public function getModel()
+    {
+        return $this->model;
     }
 
 }

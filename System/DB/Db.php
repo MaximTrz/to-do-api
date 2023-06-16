@@ -3,14 +3,11 @@
 namespace System\DB;
 
 use App\Config;
-use mysql_xdevapi\Exception;
 use Psr\Log\AbstractLogger;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
-use System\Contracts\ActiveRecordInterface;
+use System\Contracts\HasQueryResult;
 use System\Contracts\Queryable;
-use System\Models\Model;
-use System\Traits\Singletone;
 
 
 class Db
@@ -18,15 +15,16 @@ class Db
 
     private $logger;
     private $config;
+    private $resulType;
 
-    use Singletone;
-
-    protected function __construct(Config $config, AbstractLogger $logger)
+    public function __construct(Config $config, AbstractLogger $logger, string $resultType)
     {
 
         $this->config = $config;
 
         $this->setLogger($logger);
+
+        $this->resulType = $resultType;
 
         try {
             $this->dbh = new \PDO('mysql:host=' . $this->config->data['db']['host'] . ';'
@@ -41,14 +39,7 @@ class Db
 
     }
 
-    static public function getInstace(Config $config = null, AbstractLogger $logger = null){
-        if (null === static::$instance) {
-            static::$instance = new static($config, $logger);
-        }
-        return static::$instance;
-    }
-
-    public function execute($sql, $params = [])
+    public function execute(string $sql, array $params = []): HasQueryResult
     {
         $sth = $this->dbh->prepare($sql);
         $res = $sth->execute($params);
@@ -58,14 +49,19 @@ class Db
             $this->getContext($sql));
         }
 
-        return ['result' => $res, 'id' => $this->dbh->lastInsertId()];
+        try {
+            return new $this->resulType($res, $this->dbh->lastInsertId());;
+        } catch (\Exception){
+            throw new \Exception("Не удалось создать экземпляр класса DBResult");
+        }
+
     }
 
     /**
-     * @param $sql Запрос
-     * @param $class Класс вовращаемых данных
+     * @param string $sql Запрос
+     * @param string|null $class Класс вовращаемых данных
      * @param array $params Параметры для подстановки в запрос
-     * @return array Маасив с результатом выполненного запроса
+     * @return HasQueryResult Результат выполнения запроса
      */
     public function query(string $sql, string $class = null, array $params = [])
     {
@@ -77,15 +73,15 @@ class Db
             return $sth->fetchAll(\PDO::FETCH_CLASS, $class);
         }
 
-        if ($res) {
-            return $res;
+        if (!$res->getResult) {
+            $this->logger->log('warning', '{date}, Не удалось выполнить запрос БД. Имя базы: {DB}, Текст запроса: {SQL}}, ', $this->getContext());
         }
 
-        $this->logger->log('warning', '{date}, Не удалось выполнить запрос БД. Имя базы: {DB}, Текст запроса: {SQL}}, ', $this->getContext());
-        return $res;
+        return new $this->resulType($res);
     }
 
-    private function getContext(string $sql = null){
+    private function getContext(string $sql = null)
+    {
         return [
             'DB'=>$this->config->data['db']['dbname'],
             'user' => $this->config->data['db']['user'],
@@ -94,7 +90,7 @@ class Db
         ];
     }
 
-    public function setLogger(LoggerInterface $logger)
+    public function setLogger(LoggerInterface $logger) : void
     {
         $this->logger = $logger;
     }

@@ -3,18 +3,30 @@
 
 namespace System;
 
+use App\Config;
 use App\Controllers\Api\Task as TaskController;
 use App\Models\Task as TaskModel;
+use System\DB\Db;
+use System\DB\DBResult;
+use System\DB\QueryBuilder;
+use System\Traits\Singletone;
 use System\Views\View;
 
 class Container
 {
+
+    use Singletone;
+
     private array $objects = [];
 
-    public function __construct()
+    protected function __construct()
     {
         $this->objects = [
-            'db' => fn() => DB\Db::getInstace(),
+            'db' => fn() => new Db(Config::getInstace(),
+                                    new Logger(Config::getInstace()->data["log"]["DBLog"]),
+                                    DBResult::class),
+            'queryBuilder' => fn() => new QueryBuilder(),
+            'logger' => fn() => new Logger(Config::getInstace()->data["log"]["mainLog"]),
             'model.task' => fn() => new TaskModel(),
             'controller.task' => fn() => new TaskController(new TaskModel(), new View()),
         ];
@@ -27,7 +39,6 @@ class Container
 
     public function get(string $id): mixed
     {
-
         return
             isset($this->objects[$id]) ? $this->objects[$id]() : $this->prepareObject($id);
     }
