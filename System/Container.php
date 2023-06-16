@@ -4,8 +4,9 @@
 namespace System;
 
 use App\Config;
-use App\Controllers\Api\Task as TaskController;
+
 use App\Models\Task as TaskModel;
+use System\Controllers\ControllerAPI;
 use System\DB\Db;
 use System\DB\DBResult;
 use System\DB\QueryBuilder;
@@ -28,7 +29,7 @@ class Container
             'queryBuilder' => fn() => new QueryBuilder(),
             'logger' => fn() => new Logger(Config::getInstace()->data["log"]["mainLog"]),
             'model.task' => fn() => new TaskModel(),
-            'controller.task' => fn() => new TaskController(new TaskModel(), new View()),
+            'controller.task' => fn() => new ControllerAPI(new TaskModel(), new View()),
         ];
     }
 
