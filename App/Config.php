@@ -19,7 +19,7 @@ class Config
     public $data = [
         'db' => [
             'host' => '127.0.0.1',
-            'dbname' => 'kungur_glasses',
+            'dbname' => 'todo_list',
             'user' => 'root',
             'password' => 'root'
         ],

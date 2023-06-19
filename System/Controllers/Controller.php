@@ -5,6 +5,7 @@ namespace System\Controllers;
 
 
 use System\Contracts\HasActions;
+use System\Exceptions\RouteException;
 use System\Models\Model;
 use System\Views\View;
 
@@ -33,11 +34,13 @@ abstract class Controller implements HasActions
 
         if (method_exists($this, $actionName)) {
 
-            $this->$actionName($params);
+            try {
+                $this->$actionName($params);
+            } catch (\Exception){
+                throw new RouteException();
+            }
 
-        } else {
-            throw new PageNotFound();
-        }
+        } else throw new RouteException();
     }
 
 }

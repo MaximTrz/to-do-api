@@ -4,7 +4,7 @@
 namespace System\Exceptions;
 
 
-class DB extends \Exception
+class RouteException extends \Exception
 {
 
 }

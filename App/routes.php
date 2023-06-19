@@ -46,8 +46,7 @@ $router->put("api/task/{id}", function ($id) use ($container, $controllerFactory
 
 // Обработка 404
 $router->set404(function() {
-    http_response_code(404);
-    throw new Exception("Страница не найдена");
+    throw new \System\Exceptions\RouteException("Страница не найдена");
 });
 
 $router->run();

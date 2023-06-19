@@ -8,6 +8,8 @@ use System\Models\Model;
 
 class Task extends Model
 {
-    const TABLE = 'elements';
-    public $name;
+    const TABLE = 'todo_list';
+    public $text;
+    public $user_name;
+    public $status;
 }

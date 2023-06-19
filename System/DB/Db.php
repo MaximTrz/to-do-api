@@ -33,7 +33,7 @@ class Db
 
         } catch (\PDOException $ex) {
             $this->logger->log('Error', '{date}, Не удалось установить соединение с БД. Имя базы: {DB}, Имя пользователя: {user}, ', $this->getContext());
-            throw new \Exception\DB('Ошибка подключения к БД');
+            throw new \System\Exceptions\DB('Ошибка подключения к БД');
 
         }
 
@@ -75,6 +75,7 @@ class Db
 
         if (!$res->getResult) {
             $this->logger->log('warning', '{date}, Не удалось выполнить запрос БД. Имя базы: {DB}, Текст запроса: {SQL}}, ', $this->getContext());
+            throw new \System\Exceptions\DB("Не удалось выполнить запрос");
         }
 
         return new $this->resulType($res);
