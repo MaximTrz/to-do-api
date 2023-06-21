@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: 127.0.0.1:3306
--- Время создания: Июн 19 2023 г., 14:44
+-- Время создания: Июн 21 2023 г., 14:11
 -- Версия сервера: 8.0.24
 -- Версия PHP: 8.0.14
 
@@ -52,8 +52,7 @@ INSERT INTO `status_list` (`id`, `name`, `active_from`, `active_to`) VALUES
 CREATE TABLE `todo_list` (
   `id` int NOT NULL,
   `text` text NOT NULL,
-  `user_name` int NOT NULL,
-  `status` int NOT NULL DEFAULT '1',
+  `completed` tinyint(1) NOT NULL DEFAULT '0',
   `active_from` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `active_to` date NOT NULL DEFAULT '2122-12-21'
 ) ENGINE=InnoDB DEFAULT CHARSET=cp1251;
@@ -62,10 +61,10 @@ CREATE TABLE `todo_list` (
 -- Дамп данных таблицы `todo_list`
 --
 
-INSERT INTO `todo_list` (`id`, `text`, `user_name`, `status`, `active_from`, `active_to`) VALUES
-(1, 'Обычное дело', 1, 1, '2023-06-19 06:10:19', '2122-12-21'),
-(2, 'Важное дело', 1, 2, '2023-06-19 06:10:19', '2122-12-21'),
-(3, 'Выполненное дело', 1, 3, '2023-06-19 06:10:39', '2122-12-21');
+INSERT INTO `todo_list` (`id`, `text`, `completed`, `active_from`, `active_to`) VALUES
+(1, 'Обычное дело', 0, '2023-06-19 06:10:19', '2122-12-21'),
+(2, 'Важное дело', 0, '2023-06-19 06:10:19', '2122-12-21'),
+(3, 'Выполненное дело', 1, '2023-06-19 06:10:39', '2122-12-21');
 
 -- --------------------------------------------------------
 

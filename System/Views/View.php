@@ -66,6 +66,7 @@ implements \Countable
     }
 
     public function JSON($obj){
+        header('Content-Type: application/json');
         return json_encode($obj);
     }
 
